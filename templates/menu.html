@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dish Dashboard</title>
+    <style>
+        .dish-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .category-title {
+            font-size: 1.5em;
+            margin-top: 30px;
+            text-align: center;
+            color: #333;
+        }
+
+        .dish-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            width: 200px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .dish-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .dish-card h3 {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        .dish-card p {
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .dish-card span {
+            font-size: 1.1em;
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #ef824c;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e4744f;
+        }
+
+        button a {
+            color: white;
+            text-decoration: none;
+        }
+
+        button a:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Dish Menu</h1>
+
+    {% for category, dishes in categorized_dishes.items() %}
+        <div class="category-title">{{ category }}</div>
+        <div class="dish-container">
+            {% for dish in dishes %}
+            <div class="dish-card">
+                <img src="{{ url_for('static', filename=  dish[5]) }}" alt="{{ dish[1] }}">
+                <h3>{{ dish[1] }}</h3>
+                <p>{{ dish[2] }}</p>
+                <form method="POST" action="{{ url_for('add_to_cart', dish_id=dish[0]) }}">
+                    <input type="hidden" name="name" value="{{ dish[1] }}">
+                    <input type="hidden" name="price" value="{{ dish[4] }}">
+                    <input type="hidden" name="image" value="{{ dish[5] }}">
+                    <label for="qty"><b>Quantity:</b></label>
+                    <select class="form-select" name="quantity" aria-label="Select quantity">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select><br>
+                    <button type="submit">Add to Cart</button>
+                </form>
+                
+                <span>₹ {{ dish[4] }}</span>
+                <p><strong>Category:</strong> {{ dish[3] }}</p>
+            </div>
+            
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+</body>
+</html>

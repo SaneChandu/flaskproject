@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Dish</title>
+</head>
+<body>
+    <h1>Update Dish</h1>
+    <form action="" method="POST">
+        <label for="name">Dish Name:</label>
+        <input type="text" name="name" value="{{ dish[1] }}" required><br><br>
+
+        <label for="description">Dish Description:</label>
+        <input type="text" name="description" value="{{ dish[2] }}" required><br><br>
+
+        <label for="menu">Category:</label>
+        <select name="menu" value="{{dish[3]}}" required>
+            <option value="Starters" >Starters</option>
+            <option value="Maincourse">Main Course</option>
+            <option value="Desserts">Desserts</option>
+            <option value="Breads">Breads</option>
+        </select><br><br>
+
+        <label for="price">Dish Price:</label>
+        <input type="text" name="price" value="{{ dish[4] }}" required><br><br>
+
+        <input type="submit" value="Update Dish">
+    </form>
+</body>
+</html>

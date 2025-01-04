@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AddDish</title>
+    <style>
+     
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+}
+
+/* Form Styling */
+form {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Form Heading */
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Input Fields Styling */
+input[type="text"],
+select,
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Control the file input size to match other fields */
+input[type="file"] {
+    width: 100%;  /* Make the file input the same width as text fields */
+    padding: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    background-color: #fff;
+}
+
+/* Button Styling */
+input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Label Styling */
+label {
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+br {
+    margin: 10px 0;
+}
+
+/* For Mobile Devices */
+@media screen and (max-width: 600px) {
+    form {
+        padding: 15px;
+    }
+
+    input[type="submit"] {
+        font-size: 14px;
+    }
+}
+</style>
+
+
+
+</head>
+<body>
+    <div>
+        <form action="" method="POST" enctype="multipart/form-data">
+            <label for="">Dish Name:</label>
+            <input type="text" name="name" id="" placeholder="Enter item name"><br><br>
+            <label for="">Dish Description:</label>
+            <input type="text" name="description" id="" placeholder="Enter item description"><br><br>
+            <label for="menu">Menu:</label>
+            <select name="menu" id="menu">
+                <option value="starters">Starters</option>
+                <option value="maincourse">Main Course</option>
+                <option value="desserts">Desserts</option>  
+                <option value="breads">Breads</option>
+            </select><br><br>
+            <label for="">Dish Price:</label>
+            <input type="text" name="price" id="" placeholder="Enter item price"><br><br>
+            <input type="file" name="image" required><br><br>
+            <input type="submit" class="btn" value="Add Dish">
+
+        </form>
+    </div>
+</body>
+</html>

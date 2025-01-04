@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+:root {
+    --main: orange;
+    --bg: #081218;
+    --bg-body: #131028;
+}
+
+/* General Reset */
+* {
+    font-family: 'Poppins', sans-serif;
+    box-sizing: border-box;
+    text-decoration: none;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Body Styles */
+body {
+    background: var(--bg-body);
+    color: #fff;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 20px;
+}
+
+/* Header Section */
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+h2 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: var(--main);
+}
+
+/* Section Styles */
+section {
+    margin-bottom: 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #444;
+}
+
+th {
+    background-color: var(--bg);
+    color: #fff;
+}
+
+td {
+    background-color: #1f2631;
+}
+
+a {
+    color: var(--main);
+    text-decoration: none;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+a:hover {
+    background-color: var(--main);
+    color: #fff;
+}
+
+/* Order Table Styles */
+table tbody tr:hover {
+    background-color: #292f3d;
+}
+
+/* Dishes Section Styling */
+a.add-dish-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: var(--main);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+a.add-dish-btn:hover {
+    background-color: #ff7f32;
+}
+
+/* Customer Table Styles */
+table.customers tbody tr:hover {
+    background-color: #292f3d;
+}
+
+/* Logout Button */
+a.logout-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: red;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+a.logout-btn:hover {
+    background-color: darkred;
+}
+
+
+    </style>
+</head>
+<body>
+    <h1>Admin Dashboard</h1>
+
+    <!-- Orders Section -->
+    <section>
+        <h2>Orders</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Dish Name</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th>Order Status</th>
+                    <th>Order Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order['customer_name'] }}</td>
+                        <td>{{ order['dish_name'] }}</td>
+                        <td>{{ order['quantity'] }}</td>
+                        <td>₹{{ order['total_price'] }}</td>
+                        <td>{{ order['order_status'] }}</td>
+                        <td>{{ order['order_date'] }}</td>
+                        <td>
+                            <a href="{{ url_for('order_status', order_id=order['id']) }}">Update Status</a> |
+                            <a href="{{ url_for('delete_order', order_id=order['id']) }}">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Dishes Section -->
+    <section>
+        <h2>Manage Dishes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Dish Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dish in dishes %}
+                    <tr>
+                        <td>{{ dish['name'] }}</td>
+                        <td>{{ dish['menu'] }}</td>
+                        <td>₹{{ dish['price'] }}</td>
+                        <td>
+                            <a href="{{ url_for('updatedish', dish_id=dish['id']) }}">Edit</a> |
+                            <a href="{{ url_for('deletedish', dish_id=dish['id']) }}">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('adddish') }}">Add New Dish</a>
+    </section>
+
+    <!-- Customers Section -->
+    <section>
+        <h2>Customers</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Email</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer['name'] }}</td>
+                        <td>{{ customer['email'] }}</td>
+                       
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <a href="{{ url_for('adminlogout') }}">Logout</a>
+</body>
+</html>

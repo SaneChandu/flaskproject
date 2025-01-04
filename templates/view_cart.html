@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart</title>
+    <style>
+         body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 80%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .cart-summary {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .cart-summary input {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .cart-summary button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .cart-summary button:hover {
+            background-color: #218838;
+        }
+
+        .empty-cart {
+            text-align: center;
+            font-size: 18px;
+            color: #d9534f;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Cart</h1>
+    {% if dishes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key, value in dishes.items() %}
+            <tr>
+                <td>{{ value['name'] }}</td>
+                <td>₹{{ value['price'] }}</td>
+                <td>{{ value['quantity'] }}</td>
+                <td>₹{{ value['quantity'] * value['price'] }}</td>
+                <td><a href="{{ url_for('remove_from_cart', dish_id=key) }}">Remove</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="cart-summary">
+        <h3>Total Price: ₹{{ total_price }}</h3>
+        <form method="POST" action="{{ url_for('checkout') }}">
+            <label for="address">Delivery Address:</label>
+            <textarea name="address" rows="2" required></textarea>
+            <p><strong>Select Payment Method:</strong></p>
+            <label><input type="radio" name="payment_method" value="COD" required> Cash on Delivery</label>
+            <label><input type="radio" name="payment_method" value="Online"> Online Payment</label>
+            <button type="submit">Proceed to Checkout</button>
+        </form>
+    </div>
+    {% else %}
+    <p>Your cart is empty.</p>
+    {% endif %}
+</body>
+</html>

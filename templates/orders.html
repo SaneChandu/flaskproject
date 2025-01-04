@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+        }
+        .orders-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .no-orders {
+            text-align: center;
+            color: #555;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Orders</h1>
+    <div class="orders-container">
+        {% if orders %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dish</th>
+                        <th>Quantity</th>
+                        <th>Total Price (₹)</th>
+                        <th>Order Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>{{ order['dish_name'] }}</td>
+                            <td>{{ order['quantity'] }}</td>
+                            <td>₹{{ order['total_price'] }}</td>
+                            <td>{{ order['order_date'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-orders">No orders to display.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 18px;
+            text-align: center;
+            color: #555;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        input, textarea, button {
+            width: 100%;
+            margin-top: 8px;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            margin-top: 15px;
+        }
+
+        .radio-group label {
+            margin-bottom: 10px;
+        }
+
+        .cancel-link {
+            text-align: center;
+            margin-top: 20px;
+            display: block;
+            color: #d9534f;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .cancel-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Checkout</h1>
+        <p>Your total price is ₹{{ total_price }}</p>
+        <form method="POST" action="{{ url_for('process_checkout') }}">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+            
+            <label for="address">Address:</label>
+            <textarea id="address" name="address" rows="3" placeholder="Enter your delivery address" required></textarea>
+            
+            <label for="contact">Contact Number:</label>
+            <input type="tel" id="contact" name="contact" placeholder="Enter your contact number" pattern="[0-9]{10}" title="Enter a valid 10-digit contact number" required>
+            
+            <p><strong>Select Payment Method:</strong></p>
+            <div class="radio-group">
+                <label><input type="radio" name="payment_method" value="COD" required> Cash on Delivery</label>
+                <label><input type="radio" name="payment_method" value="Online"> Online Payment</label>
+            </div>
+            
+            <button type="submit">Place Order</button>
+        </form>
+        <a class="cancel-link" href="{{ url_for('viewcart') }}">Cancel and Return to Cart</a>
+    </div>
+</body>
+</html>

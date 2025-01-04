@@ -1,0 +1,123 @@
+/* General Reset */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    color: #333;
+  }
+  
+  /* Container */
+  .signup-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  /* Title and Description */
+  .signup-container h1 {
+    color: #ff6f61;
+    margin-bottom: 10px;
+  }
+  
+  .signup-container p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  /* Form */
+  .signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .signup-form label {
+    text-align: left;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .signup-form input {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  
+  .signup-form input:focus {
+    border-color: #ff6f61;
+  }
+  
+  .signup-form button {
+    padding: 12px;
+    background-color: #ff6f61;
+    color: #fff;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .signup-form button:hover {
+    background-color: #e85a4f;
+  }
+  
+  /* Sign In Link */
+  .signin-link {
+    margin-top: 20px;
+    font-size: 14px;
+  }
+  
+  .signin-link a {
+    color: #ff6f61;
+    text-decoration: none;
+  }
+  
+  .signin-link a:hover {
+    text-decoration: underline;
+  }
+  /* Login Container */
+  .login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  /* Title and Description */
+  .login-container h1 {
+    color: #ff6f61;
+    margin-bottom: 10px;
+  }
+  
+  .login-container p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  /* Sign Up Link */
+  .signup-link {
+    margin-top: 20px;
+    font-size: 14px;
+  }
+  
+  .signup-link a {
+    color: #ff6f61;
+    text-decoration: none;
+  }
+  
+  .signup-link a:hover {
+    text-decoration: underline;
+  }

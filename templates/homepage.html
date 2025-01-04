@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Kitchen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome/css/font-awesome.min.css" rel="stylesheet"> <!-- FontAwesome Icons -->
+    <style>
+        .navbar {
+          background-color: black !important;
+        }
+
+       .navbar .nav-link,
+       .navbar .navbar-brand {
+       color: white !important;
+        }
+
+       .navbar .nav-link:hover {
+        color: #ff6347; 
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .hero {
+            background: url('static/bg1.jpg') no-repeat center center/cover;
+            background-size: cover;
+            color: white;
+            height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); 
+        }
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            z-index: 1;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            z-index: 1;
+        }
+        .hero a {
+            font-size: 1.2rem;
+            padding: 10px 25px;
+            border-radius: 25px;
+            margin-top: 20px;
+            z-index: 1;
+        }
+
+        .features {
+            padding: 4rem 0;
+            background-color: #ffffff;
+        }
+        .features h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+        .features .col-md-4 {
+            padding: 1.5rem;
+            text-align: center;
+            background-color: #f1f1f1;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+        .features .col-md-4:hover {
+            transform: scale(1.05);
+        }
+        .features i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ff6347;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+        footer a {
+            color: #ff6347;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        .navbar-brand {
+            font-size: 1.75rem;
+            font-weight: bold;
+        }
+        .navbar-nav .nav-item .nav-link {
+            font-size: 1.1rem;
+        }
+    </style>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="bg-dark text-white p-3">
+        <div class="container d-flex justify-content-between">
+            <img src="/static/logo.jpg" height="100px" width="270px" alt="Annie's Kitchen Logo">
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Annie's Kitchen</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item"><a class="nav-link active" aria-current="page" href="#">Home</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#">About us</a></li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Menu</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#">Starters</a></li>
+                                    <li><a class="dropdown-item" href="#">Main Course</a></li>
+                                    <li><a class="dropdown-item" href="#">Desserts</a></li>
+                                    <li><a class="dropdown-item" href="#">Breads</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <form class="d-flex" role="search">
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                            <button class="btn btn-outline-success" type="submit">Search</button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+            <nav>
+                {% if not session.get('user') %}
+                <li class="nav-item"><a href="{{ url_for('signup') }}"><i class="fa-solid fa-user-plus"></i> Signup</a></li>
+                <li class="nav-item"><a href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> Login</a></li>
+                {% else %}
+                <li class="nav-item"><a href="{{url_for('orders')}}"><i class="fa-solid fa-money-bill-trend-up"></i> Orders</a></li>
+                <li class="nav-item"><a href="{{ url_for('logout') }}"><i class="fa-solid fa-arrow-left"></i> Logout</a></li>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div>
+            <h1>WELCOME TO ANNIE'S KITCHEN</h1>
+            <p>Flavors Meet Warm Smiles</p>
+            <p>Fresh, Delicious, and Delivered to Your Doorstep</p>
+            <a href="/menu" class="btn btn-danger">Order Now</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features container text-center">
+        <h2 class="mb-4">Why Choose Us?</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <i class="fa fa-truck"></i>
+                <h3>Fast Delivery</h3>
+                <p>Get your food delivered quickly and fresh.</p>
+            </div>
+            <div class="col-md-4">
+                <i class="fa fa-lemon"></i>
+                <h3>Fresh Ingredients</h3>
+                <p>We use only the freshest ingredients for every meal.</p>
+            </div>
+            <div class="col-md-4">
+                <i class="fa fa-star"></i>
+                <h3>Top-Rated Service</h3>
+                <p>Our customers love our food and service.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Annie's Kitchen. All Rights Reserved.</p>
+        <p>Follow us on 
+            <a href="#">Facebook</a>, 
+            <a href="#">Instagram</a>, and 
+            <a href="#">Twitter</a>.
+        </p>
+    </footer>
+</body>
+</html>
