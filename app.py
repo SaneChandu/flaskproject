@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect,url_for,flash,session
+from flask import Flask,render_template,request,redirect,url_for,flash,session,jsonify
 import mysql.connector
 from otp import genotp
 from itemid import itemidotp
@@ -249,6 +249,8 @@ def deletedish(dish_id):
     else:
         flash('Please log in as admin to delete dishes.', 'error')
         return redirect(url_for('adminlogin'))
+
+
 @app.route('/add_to_cart/<int:dish_id>', methods=['POST'])
 def add_to_cart(dish_id):
     quantity = int(request.form['quantity'])
@@ -325,20 +327,28 @@ def remove_from_cart(dish_id):
 
     return redirect(url_for('viewcart'))
 
+
 @app.route('/viewcart')
 def viewcart():
     user_id = session.get('user_id')
     if not user_id:
+        flash("Please log in to view your cart.", "error")
         return redirect(url_for('login'))
+
+    # Ensure the 'cart' key exists in the session
+    if 'cart' not in session:
+        session['cart'] = {}
 
     # Retrieve the user's cart
     user_cart = session['cart'].get(str(user_id), {})
     if not user_cart:
+        flash("Your cart is empty!", "info")
         return render_template('view_cart.html', dishes=None)
 
     # Calculate the total price
     total_price = sum(item['quantity'] * item['price'] for item in user_cart.values())
     return render_template('view_cart.html', dishes=user_cart, total_price=total_price)
+
 
 @app.route('/checkout', methods=['POST'])
 def checkout():
@@ -346,57 +356,85 @@ def checkout():
     if not user_id:
         return redirect(url_for('login'))
 
-    user_cart = session.get(f'cart_{user_id}', {})
-    if not user_cart:
-        flash("Your cart is empty!", "error")
-        return redirect(url_for('viewcart'))
-
     address = request.form.get('address')
     payment_method = request.form.get('payment_method')
+    user_cart = session.get('cart', {}).get(str(user_id), {})  # Get the user's cart
 
+    # Dynamically calculate the total price based on the cart
     total_price = sum(item['quantity'] * item['price'] for item in user_cart.values())
 
+    # Ensure the total price is at least ₹1 (100 paise)
+    total_price_in_paise = max(int(total_price * 100), 100)
+
+    # Create Razorpay order with the dynamically calculated amount
     if payment_method == 'Online':
         try:
             order_data = {
-                "amount": int(total_price * 100),
+                "amount": total_price_in_paise,  # Amount in paise
                 "currency": "INR",
                 "receipt": f"order_rcptid_{user_id}"
             }
             razorpay_order = razorpay_client.order.create(data=order_data)
 
+            # Save Razorpay order ID in the session for verification after payment
             session['razorpay_order_id'] = razorpay_order['id']
-            session['address'] = address
 
             return render_template(
-                'razorpay_payment.html',
-                razorpay_order_id=razorpay_order['id'],
-                total_price=total_price,
+                'razorpay_payment.html', 
+                razorpay_order=razorpay_order, 
+                total_price=total_price,  # Total price in INR
                 address=address
             )
         except Exception as e:
-            logging.error(f"Razorpay error: {e}")
-            flash("Error creating payment. Try again.", "error")
+            flash(f"Error creating Razorpay order: {str(e)}", "error")
             return redirect(url_for('viewcart'))
-    else:
-        # COD logic remains the same
-        pass
 
-@app.route('/payment-success', methods=['POST'])
+    # Handle other payment methods (e.g., COD) here...
+
+    # Process Cash on Delivery (COD)
+    elif payment_method == 'COD':
+        try:
+            cursor = mydb.cursor()
+            for dish_id, item in user_cart.items():
+                item_total = item['quantity'] * item['price']
+                cursor.execute(
+                    """
+                    INSERT INTO orders (customer_id, dish_id, quantity, total_price, address, payment_method, order_status, order_date, razorpay_order_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(),%s)
+                    """,
+                   (user_id, dish_id, item['quantity'], item_total, address, "COD", "Pending"),
+                )
+            mydb.commit()
+
+            # Clear the user's cart
+            session.pop(user_id, None)
+
+            flash("Your order has been placed successfully with Cash on Delivery!", "success")
+            return redirect(url_for('orders'))
+        except Exception as e:
+            flash(f"Error placing order: {str(e)}", "error")
+            return redirect(url_for('viewcart'))
+
+    # Invalid payment method
+    else:
+        flash("Invalid payment method selected. Please try again.", "error")
+        return redirect(url_for('viewcart'))
+    
+
+@app.route('/payment_success', methods=['POST'])
 def payment_success():
     try:
         # Parse JSON data from the request
         payment_data = request.get_json()
+        print("Received Payment Data:", payment_data)
+
         payment_id = payment_data.get('razorpay_payment_id')
         order_id = payment_data.get('razorpay_order_id')
         signature = payment_data.get('razorpay_signature')
 
-        user_id = session.get('user_id')
-        user_cart = session.get(session.get('user'), {})
-        address = session.get('address')
-
-        if not user_id or not user_cart:
-            return {"status": "failure", "message": "Cart or user session is empty!"}, 400
+        print("Order ID:", order_id)
+        print("Payment ID:", payment_id)
+        print("Signature:", signature)
 
         # Verify Razorpay payment signature
         razorpay_client.utility.verify_payment_signature({
@@ -405,38 +443,44 @@ def payment_success():
             'razorpay_signature': signature
         })
 
-        # Store order details in the database
+        # Get the total amount for the order (assuming you can fetch it from the orders table)
         cursor = mydb.cursor()
-        for dish_id, details in user_cart.items():
-            cursor.execute(
-                """
-                INSERT INTO orders (customer_id, dish_id, quantity, total_price, order_status, order_date, address, payment_method)
-                VALUES (%s, %s, %s, %s, %s, NOW(), %s, %s)
-                """,
-                (
-                    user_id,
-                    dish_id,
-                    details['quantity'],
-                    details['price'] * details['quantity'],
-                    "Completed",
-                    address,
-                    "Online Payment"
-                )
-            )
+        cursor.execute("SELECT total_price FROM orders WHERE razorpay_order_id = %s", (order_id,))
+        order = cursor.fetchone()
+        total_amount = order['total_price'] if order else 0
+
+        print("Total Amount:", total_amount)
+
+        # Save payment data to the database
+        user_id = session.get('user_id')  # Assuming user_id is stored in session
+        cursor.execute("""
+            INSERT INTO payments (order_id, payment_id, user_id, amount, status)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (order_id, payment_id, user_id, total_amount, "Completed"))
         mydb.commit()
-        cursor.close()
 
-        # Clear the cart after placing the order
-        session.pop(session.get('user'), None)
+        # Update the order status as paid
+        cursor.execute("""
+            UPDATE orders
+            SET order_status = 'Paid'
+            WHERE razorpay_order_id = %s
+        """, (order_id,))
+        mydb.commit()
 
-        # Return success and redirect URL
-        return {"status": "success", "redirect_url": url_for('orders')}
-    except razorpay.errors.SignatureVerificationError:
-        logging.error("Signature verification failed.")
-        return {"status": "failure", "message": "Signature verification failed."}, 400
+        # If verification and saving are successful, redirect to orders
+        flash("Payment successful!", "success")
+        return jsonify({"status": "success", "redirect_url": url_for('orders')})
+
+    except razorpay.errors.SignatureVerificationError as e:
+        print("Signature Verification Error:", e)
+        flash("Payment verification failed. Please try again.", "error")
+        return jsonify({"status": "failure", "message": "Payment verification failed."})
+
     except Exception as e:
-        logging.error(f"Error processing payment: {e}")
-        return {"status": "failure", "message": "An error occurred while processing your payment."}, 500
+        print("Unexpected Error:", e)
+        flash("An error occurred while processing your payment.", "error")
+        return jsonify({"status": "failure", "message": "An error occurred."})
+
 
 
 @app.route('/orders')
