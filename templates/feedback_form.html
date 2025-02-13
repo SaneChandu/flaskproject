@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Feedback Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> <!-- Optional -->
+<style>
+ /* General body styling */
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    box-sizing: border-box;
+}
+
+/* Feedback form section */
+#feedback {
+    background-color: #fff5e6; /* Light background color for warmth */
+    padding: 3rem 2rem;
+    text-align: center;
+    border-top: 2px solid #e67e22; /* Matches theme color */
+}
+
+#feedback h2 {
+    font-size: 2.5rem;
+    color: #e67e22; /* Highlight heading in theme color */
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+#feedback p {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 2rem;
+}
+
+/* Form input styles */
+input[type="text"], input[type="email"], textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    color: #555;
+    box-sizing: border-box;
+}
+
+/* Button styling */
+.feedback-btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    color: white;
+    background-color: #e67e22; /* Button matches theme color */
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.feedback-btn:hover {
+    background-color: #d35400; /* Darker shade for hover effect */
+    transform: scale(1.05); /* Slight zoom effect */
+}
+
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+/* Optional link back to homepage */
+a.feedback-btn {
+    margin-top: 2rem;
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    background-color: #e67e22;
+    color: white;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+a.feedback-btn:hover {
+    background-color: #d35400;
+    transform: scale(1.05);
+}
+
+
+
+</style>
+</head>
+
+
+
+<body>
+    <div id="feedback">
+        <h2>Feedback Form</h2>
+        <p>We would love to hear your thoughts! Please provide your feedback below.</p>
+        <form action="{{ url_for('feedback_form') }}" method="POST">
+            <label for="customer_name">Name:</label>
+            <input type="text" id="customer_name" name="customer_name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="comment">Your Feedback:</label>
+            <textarea id="comment" name="comment" required></textarea>
+
+            <button type="submit" class="feedback-btn">Submit</button>
+        </form>
+        <a href="{{ url_for('base') }}" class="feedback-btn">Go Back to Homepage</a>
+    </div>
+</body>
+</html>

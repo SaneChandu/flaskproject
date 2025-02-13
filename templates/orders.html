@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders</title>
+    <title>Your Orders</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,71 +11,65 @@
             padding: 0;
             background-color: #f4f4f4;
         }
+
         h1 {
             text-align: center;
             color: #333;
-            margin: 20px 0;
+            margin-top: 20px;
         }
-        .orders-container {
-            max-width: 800px;
+
+        table {
+            width: 80%;
             margin: 0 auto;
-            padding: 20px;
+            border-collapse: collapse;
             background-color: #fff;
-            border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+
         th, td {
-            text-align: left;
-            padding: 12px;
+            padding: 15px;
+            text-align: center;
             border: 1px solid #ddd;
         }
+
         th {
-            background-color: #007bff;
+            background-color: #4CAF50;
             color: white;
         }
+
         tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f2f2f2;
         }
-        .no-orders {
-            text-align: center;
-            color: #555;
-            font-size: 18px;
-            margin-top: 20px;
-        }
+
     </style>
 </head>
 <body>
-    <h1>My Orders</h1>
-    <div class="orders-container">
-        {% if orders %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Dish</th>
-                        <th>Quantity</th>
-                        <th>Total Price (₹)</th>
-                        <th>Order Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in orders %}
-                        <tr>
-                            <td>{{ order['dish_name'] }}</td>
-                            <td>{{ order['quantity'] }}</td>
-                            <td>₹{{ order['total_price'] }}</td>
-                            <td>{{ order['order_date'] }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="no-orders">No orders to display.</p>
-        {% endif %}
-    </div>
+    <h1>Your Orders</h1>
+    {% if orders %}
+    <table>
+        <thead>
+            <tr>
+                <th>Dish Name</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th>Payment Method</th>
+                <th>Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.dish_name }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>₹{{ order.total_price }}</td>
+                <td>{{ order.payment_method }}</td>
+                <td>{{ order.address }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You have no orders yet.</p>
+    {% endif %}
 </body>
 </html>

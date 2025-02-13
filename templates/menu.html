@@ -3,116 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dish Dashboard</title>
+    <title>Cloud Kitchen - Menu</title>
+    
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        nav .brand {
+            font-size: 1.5rem;
+            color: white;
+            text-decoration: none;
+        }
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+        nav ul li {
+            margin: 0 10px;
+            position: relative;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+        }
+        nav ul li .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #444;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        nav ul li:hover .dropdown {
+            display: block;
+        }
+        nav ul li .dropdown a {
+            display: block;
+            padding: 10px;
+            color: white;
+        }
+        .category-title {
+            margin-top: 40px;
+            font-size: 2rem;
+            text-align: center;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-bottom: 2px solid #ddd;
+        }
         .dish-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
             justify-content: center;
+            padding: 20px;
+            gap: 20px;
         }
-
-        .category-title {
-            font-size: 1.5em;
-            margin-top: 30px;
-            text-align: center;
-            color: #333;
-        }
-
         .dish-card {
+            background-color: white;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            width: 200px;
+            border-radius: 10px;
+            padding: 20px;
             text-align: center;
-            background-color: #f9f9f9;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
         .dish-card img {
             width: 100%;
-            height: auto;
-            border-radius: 8px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
         }
-
         .dish-card h3 {
-            font-size: 1.2em;
+            font-size: 1.5rem;
+            margin: 10px 0;
+        }
+        .dish-card p {
+            color: #555;
+            margin: 10px 0;
+        }
+        .dish-card span {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
             margin-top: 10px;
         }
-
-        .dish-card p {
-            font-size: 0.9em;
-            color: #333;
-        }
-
-        .dish-card span {
-            font-size: 1.1em;
-            color: #d9534f;
-            font-weight: bold;
-        }
-
-        button {
-            background-color: #ef824c;
-            border: none;
-            color: white;
+        .dish-card button {
+            margin-top: 10px;
             padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin: 5px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #e4744f;
-        }
-
-        button a {
+            background-color: #ff6f61;
             color: white;
-            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
-
-        button a:hover {
-            text-decoration: underline;
+        .dish-card button:hover {
+            background-color: #ff6f61;
         }
-
     </style>
 </head>
 <body>
-    <h1>Dish Menu</h1>
+    <!-- Navbar -->
+    <nav>
+        <a href="{{ url_for('base') }}" class="brand">Cloud Kitchen</a>
+        <ul>
+            <li>
+                <a href="{{ url_for('menu') }}">Menu</a>
+                <div class="dropdown">
+                    <a href="{{ url_for('menu') }}#starters">Starters</a>
+                    <a href="{{ url_for('menu') }}#breads">Breads</a>
+                    <a href="{{ url_for('menu') }}#maincourse">Main Course</a>
+                    <a href="{{ url_for('menu') }}#desserts">Desserts</a>
+                </div>
+            </li>
+            <li><a href="{{ url_for('base') }}#about">About Us</a></li>
+            <li><a href="{{ url_for('base') }}#contact">Contact Us</a></li>
+        </ul>
+    </nav>
 
-    {% for category, dishes in categorized_dishes.items() %}
-        <div class="category-title">{{ category }}</div>
-        <div class="dish-container">
-            {% for dish in dishes %}
-            <div class="dish-card">
-                <img src="{{ url_for('static', filename=  dish[5]) }}" alt="{{ dish[1] }}">
-                <h3>{{ dish[1] }}</h3>
-                <p>{{ dish[2] }}</p>
-                <form method="POST" action="{{ url_for('add_to_cart', dish_id=dish[0]) }}">
-                    <input type="hidden" name="name" value="{{ dish[1] }}">
-                    <input type="hidden" name="price" value="{{ dish[4] }}">
-                    <input type="hidden" name="image" value="{{ dish[5] }}">
-                    <label for="qty"><b>Quantity:</b></label>
-                    <select class="form-select" name="quantity" aria-label="Select quantity">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select><br>
-                    <button type="submit">Add to Cart</button>
-                </form>
-                
-                <span>₹ {{ dish[4] }}</span>
-                <p><strong>Category:</strong> {{ dish[3] }}</p>
-            </div>
-            
-            {% endfor %}
+    <!-- Menu Sections -->
+    <h1 style="text-align: center; margin-top: 20px;">Dish Menu</h1>
+
+    <!-- Starters Section -->
+    <div id="starters" class="category-title">Starters</div>
+    <div class="dish-container">
+        {% for dish in categorized_dishes['Starters'] %}
+        <div class="dish-card">
+            <img src="{{ url_for('static', filename=dish[5]) }}" alt="{{ dish[1] }}">
+            <h3>{{ dish[1] }}</h3>
+            <p>{{ dish[2] }}</p>
+            <form method="POST" action="{{ url_for('add_to_cart', dish_id=dish[0]) }}">
+                <input type="hidden" name="name" value="{{ dish[1] }}">
+                <input type="hidden" name="price" value="{{ dish[4] }}">
+                <input type="hidden" name="image" value="{{ dish[5] }}">
+                <label for="qty"><b>Quantity:</b></label>
+                <select class="form-select" name="quantity" aria-label="Select quantity">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select><br>
+                <button type="submit">Add to Cart</button>
+            </form>
+            <span>₹ {{ dish[4] }}</span>
+            <p><strong>Category:</strong> {{ dish[3] }}</p>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 
+    <!-- Repeat for other sections -->
+    <div id="breads" class="category-title">Breads</div>
+    <div class="dish-container">
+        {% for dish in categorized_dishes['Breads'] %}
+        <div class="dish-card">
+            <img src="{{ url_for('static', filename=dish[5]) }}" alt="{{ dish[1] }}">
+            <h3>{{ dish[1] }}</h3>
+            <p>{{ dish[2] }}</p>
+            <form method="POST" action="{{ url_for('add_to_cart', dish_id=dish[0]) }}">
+                <input type="hidden" name="name" value="{{ dish[1] }}">
+                <input type="hidden" name="price" value="{{ dish[4] }}">
+                <input type="hidden" name="image" value="{{ dish[5] }}">
+                <label for="qty"><b>Quantity:</b></label>
+                <select class="form-select" name="quantity" aria-label="Select quantity">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select><br>
+                <button type="submit">Add to Cart</button>
+            </form>
+            <span>₹ {{ dish[4] }}</span>
+            <p><strong>Category:</strong> {{ dish[3] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="maincourse" class="category-title">Main Course</div>
+    <div class="dish-container">
+        {% for dish in categorized_dishes['Maincourse'] %}
+        <div class="dish-card">
+            <img src="{{ url_for('static', filename=dish[5]) }}" alt="{{ dish[1] }}">
+            <h3>{{ dish[1] }}</h3>
+            <p>{{ dish[2] }}</p>
+            <form method="POST" action="{{ url_for('add_to_cart', dish_id=dish[0]) }}">
+                <input type="hidden" name="name" value="{{ dish[1] }}">
+                <input type="hidden" name="price" value="{{ dish[4] }}">
+                <input type="hidden" name="image" value="{{ dish[5] }}">
+                <label for="qty"><b>Quantity:</b></label>
+                <select class="form-select" name="quantity" aria-label="Select quantity">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select><br>
+                <button type="submit">Add to Cart</button>
+            </form>
+            <span>₹ {{ dish[4] }}</span>
+            <p><strong>Category:</strong> {{ dish[3] }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+
+    <div id="desserts" class="category-title">Desserts</div>
+    <div class="dish-container">
+        {% for dish in categorized_dishes['Desserts'] %}
+        <div class="dish-card">
+            <img src="{{ url_for('static', filename=dish[5]) }}" alt="{{ dish[1] }}">
+            <h3>{{ dish[1] }}</h3>
+            <p>{{ dish[2] }}</p>
+            <form method="POST" action="{{ url_for('add_to_cart', dish_id=dish[0]) }}">
+                <input type="hidden" name="name" value="{{ dish[1] }}">
+                <input type="hidden" name="price" value="{{ dish[4] }}">
+                <input type="hidden" name="image" value="{{ dish[5] }}">
+                <label for="qty"><b>Quantity:</b></label>
+                <select class="form-select" name="quantity" aria-label="Select quantity">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select><br>
+                <button type="submit">Add to Cart</button>
+            </form>
+            <span>₹ {{ dish[4] }}</span>
+            <p><strong>Category:</strong> {{ dish[3] }}</p>
+        </div>
+        {% endfor %}
+    </div>
 </body>
 </html>

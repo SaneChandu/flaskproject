@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect,url_for,flash,session,jsonify
+from flask import Flask,render_template,request,redirect,url_for,flash,session,jsonify,json
 import mysql.connector
 from otp import genotp
 from itemid import itemidotp
@@ -6,10 +6,11 @@ from itemid import itemidotp
 from cmail import sendmail
 import os 
 import logging
-
 from collections import defaultdict
 import razorpay
 logging.basicConfig(level=logging.INFO)
+from razorpay.errors import SignatureVerificationError
+
 RAZORPAY_API_KEY='rzp_test_p1Y8tik4gQ37wZ'
 RAZORPAY_API_SECRET='vjiqjfyj14fUsizxWatlpiRZ'
 razorpay_client = razorpay.Client(auth=(RAZORPAY_API_KEY, RAZORPAY_API_SECRET))
@@ -62,7 +63,7 @@ def login():
         query = "SELECT * FROM user WHERE email = %s AND password = %s"
         cursor.execute(query, (email, password))
         user = cursor.fetchone()
-        print(user)  # Debugging: Check what `user` contains
+        print(user)  # Debugging: Check what user contains
 
         if user:
             session['user_id'] = user['id']  # Save the unique user ID in the session
@@ -76,6 +77,7 @@ def login():
 
     return render_template('login.html')
 
+#logout
 @app.route('/logout')
 def logout():
     if session.get('user'):
@@ -86,7 +88,7 @@ def logout():
         return redirect(url_for('login'))
 
 
-
+#adminsignup
 @app.route('/adminsignup', methods=['GET', 'POST'])
 def adminsignup():
     if request.method == 'POST':
@@ -134,6 +136,8 @@ def adminlogin():
             return redirect(url_for('adminlogin'))
 
     return render_template('adminlogin.html')
+
+#adminlogout
 @app.route('/adminlogout')
 def adminlogout():
     if session.get('admin'):
@@ -143,6 +147,7 @@ def adminlogout():
         flash('already logged out!')
         return redirect(url_for('adminlogin'))
 
+#adddish route
 @app.route('/adddish', methods=['GET', 'POST'])
 def adddish():
     if session.get('admin_id'):
@@ -178,7 +183,7 @@ def adddish():
         flash('Please log in as admin to add a dish.', 'error')
         return redirect(url_for('adminlogin'))
 
-
+#menu
 @app.route('/menu')
 def menu():
     cursor = mydb.cursor()
@@ -193,9 +198,7 @@ def menu():
     return render_template('menu.html', categorized_dishes=categorized_dishes)
 
 
-
-
-
+#updated dish
 @app.route('/updatedish/<int:dish_id>', methods=['GET', 'POST'])
 def updatedish(dish_id):
     if session.get('admin_id'):
@@ -229,7 +232,8 @@ def updatedish(dish_id):
     else:
         flash('Please log in as admin to edit dishes.', 'error')
         return redirect(url_for('adminlogin'))
-
+    
+#deleteddish route
 @app.route('/deletedish/<int:dish_id>', methods=['GET'])
 def deletedish(dish_id):
     if session.get('admin_id'):
@@ -360,54 +364,77 @@ def checkout():
     payment_method = request.form.get('payment_method')
     user_cart = session.get('cart', {}).get(str(user_id), {})  # Get the user's cart
 
-    # Dynamically calculate the total price based on the cart
     total_price = sum(item['quantity'] * item['price'] for item in user_cart.values())
 
-    # Ensure the total price is at least ₹1 (100 paise)
     total_price_in_paise = max(int(total_price * 100), 100)
 
-    # Create Razorpay order with the dynamically calculated amount
     if payment_method == 'Online':
         try:
+            # Create Razorpay order
             order_data = {
-                "amount": total_price_in_paise,  # Amount in paise
+                "amount": total_price_in_paise,
                 "currency": "INR",
                 "receipt": f"order_rcptid_{user_id}"
             }
             razorpay_order = razorpay_client.order.create(data=order_data)
 
-            # Save Razorpay order ID in the session for verification after payment
             session['razorpay_order_id'] = razorpay_order['id']
 
+            # Insert order summary into orders_summary table
+            cursor = mydb.cursor()
+            cursor.execute("""
+                INSERT INTO orders_summary (customer_id, total_price, order_status, order_date, address, payment_method)
+                VALUES (%s, %s, %s, NOW(), %s, %s)
+            """, (user_id, total_price, 'Pending', address, payment_method))
+            mydb.commit()
+            order_id = cursor.lastrowid  # Get the newly inserted order_id (for future reference, if needed)
+
+            # Insert order details into orders table (no order_summary_id)
+            for dish_id, item in user_cart.items():
+                item_total = item['quantity'] * item['price']
+                cursor.execute("""
+                    INSERT INTO orders (customer_id, dish_id, quantity, total_price, address, payment_method, order_status, order_date)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                """, (user_id, dish_id, item['quantity'], item_total, address, payment_method, 'Pending'))
+            mydb.commit()
+
+            if 'cart' in session:
+                session['cart'].pop(str(user_id), None)
+
+
+            flash("Your order has been placed successfully!", "success")
             return render_template(
-                'razorpay_payment.html', 
-                razorpay_order=razorpay_order, 
-                total_price=total_price,  # Total price in INR
-                address=address
+                'razorpay_payment.html',
+                razorpay_order=razorpay_order,
+                total_price=total_price,
+                address=address,
+                payment_method=payment_method
             )
         except Exception as e:
             flash(f"Error creating Razorpay order: {str(e)}", "error")
             return redirect(url_for('viewcart'))
 
-    # Handle other payment methods (e.g., COD) here...
-
-    # Process Cash on Delivery (COD)
     elif payment_method == 'COD':
         try:
+            # Insert order summary into orders_summary table
             cursor = mydb.cursor()
+            cursor.execute("""
+                INSERT INTO orders_summary (customer_id, total_price, order_status, order_date, address, payment_method)
+                VALUES (%s, %s, %s, NOW(), %s, %s)
+            """, (user_id, total_price, 'Pending', address, payment_method))
+            mydb.commit()
+            order_id = cursor.lastrowid  # Get the newly inserted order_id
+
+            # Insert order details into orders table (no order_summary_id)
             for dish_id, item in user_cart.items():
                 item_total = item['quantity'] * item['price']
-                cursor.execute(
-                    """
-                    INSERT INTO orders (customer_id, dish_id, quantity, total_price, address, payment_method, order_status, order_date, razorpay_order_id)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(),%s)
-                    """,
-                   (user_id, dish_id, item['quantity'], item_total, address, "COD", "Pending"),
-                )
+                cursor.execute("""
+                    INSERT INTO orders (customer_id, dish_id, quantity, total_price, address, payment_method, order_status, order_date)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                """, (user_id, dish_id, item['quantity'], item_total, address, payment_method, 'Pending'))
             mydb.commit()
 
-            # Clear the user's cart
-            session.pop(user_id, None)
+            session.pop(str(user_id), None)  # Clear the user's cart after order
 
             flash("Your order has been placed successfully with Cash on Delivery!", "success")
             return redirect(url_for('orders'))
@@ -415,87 +442,46 @@ def checkout():
             flash(f"Error placing order: {str(e)}", "error")
             return redirect(url_for('viewcart'))
 
-    # Invalid payment method
     else:
         flash("Invalid payment method selected. Please try again.", "error")
         return redirect(url_for('viewcart'))
-    
 
-@app.route('/payment_success', methods=['POST'])
+
+@app.route('/payment-success', methods=['POST'])
 def payment_success():
     try:
-        # Parse JSON data from the request
-        payment_data = request.get_json()
-        print("Received Payment Data:", payment_data)
+        data = request.get_json()
+        
+        razorpay_order_id = data['razorpay_order_id']
+        razorpay_signature = data['razorpay_signature']
 
-        payment_id = payment_data.get('razorpay_payment_id')
-        order_id = payment_data.get('razorpay_order_id')
-        signature = payment_data.get('razorpay_signature')
-
-        print("Order ID:", order_id)
-        print("Payment ID:", payment_id)
-        print("Signature:", signature)
-
-        # Verify Razorpay payment signature
-        razorpay_client.utility.verify_payment_signature({
-            'razorpay_order_id': order_id,
-            'razorpay_payment_id': payment_id,
-            'razorpay_signature': signature
-        })
-
-        # Get the total amount for the order (assuming you can fetch it from the orders table)
         cursor = mydb.cursor()
-        cursor.execute("SELECT total_price FROM orders WHERE razorpay_order_id = %s", (order_id,))
-        order = cursor.fetchone()
-        total_amount = order['total_price'] if order else 0
-
-        print("Total Amount:", total_amount)
-
-        # Save payment data to the database
-        user_id = session.get('user_id')  # Assuming user_id is stored in session
-        cursor.execute("""
-            INSERT INTO payments (order_id, payment_id, user_id, amount, status)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (order_id, payment_id, user_id, total_amount, "Completed"))
-        mydb.commit()
-
-        # Update the order status as paid
         cursor.execute("""
             UPDATE orders
-            SET order_status = 'Paid'
+            SET order_status = 'Completed'
             WHERE razorpay_order_id = %s
-        """, (order_id,))
+        """, (razorpay_order_id,))
+        
         mydb.commit()
-
-        # If verification and saving are successful, redirect to orders
-        flash("Payment successful!", "success")
+        
         return jsonify({"status": "success", "redirect_url": url_for('orders')})
-
-    except razorpay.errors.SignatureVerificationError as e:
-        print("Signature Verification Error:", e)
-        flash("Payment verification failed. Please try again.", "error")
-        return jsonify({"status": "failure", "message": "Payment verification failed."})
-
     except Exception as e:
-        print("Unexpected Error:", e)
-        flash("An error occurred while processing your payment.", "error")
-        return jsonify({"status": "failure", "message": "An error occurred."})
+        return jsonify({"status": "failed", "message": str(e)})
 
 
 
 @app.route('/orders')
 def orders():
-    user_id = session.get('user_id')  # Get the user ID from the session
+    user_id = session.get('user_id')
     if not user_id:
         flash("Please log in to view your orders.")
         return redirect(url_for('login'))
 
     cursor = mydb.cursor(dictionary=True)
     try:
-        # Fetch orders and associated dish details
         cursor.execute("""
             SELECT o.quantity, o.total_price, o.order_status, o.order_date, 
-                   o.address, d.name AS dish_name
+                   o.address, o.payment_method, d.name AS dish_name
             FROM orders o
             JOIN adddish d ON o.dish_id = d.id
             WHERE o.customer_id = %s
@@ -504,8 +490,12 @@ def orders():
         orders = cursor.fetchall()
     finally:
         cursor.close()
-
+    
     return render_template('orders.html', orders=orders)
+
+
+
+
 
 @app.route('/payment-failure', methods=['GET'])
 def payment_failure():
@@ -515,10 +505,28 @@ def payment_failure():
 def admin_dashboard():
     if session.get('admin_id'):
         cursor = mydb.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM orders')
+        
+        # Fetch orders with customer name and dish name
+        cursor.execute('''
+            SELECT 
+                orders.id, 
+                orders.quantity, 
+                orders.total_price, 
+                orders.order_status, 
+                orders.order_date, 
+                user.name AS customer_name, 
+                adddish.name AS dish_name
+            FROM orders
+            JOIN user ON orders.customer_id = user.id
+            JOIN adddish ON orders.dish_id = adddish.id
+        ''')
         orders = cursor.fetchall()
+        
+        # Fetch dishes
         cursor.execute('SELECT * FROM adddish')
         dishes = cursor.fetchall()
+        
+        # Fetch customers
         cursor.execute('SELECT * FROM user')
         customers = cursor.fetchall()
         
@@ -526,19 +534,6 @@ def admin_dashboard():
     else:
         flash('Please log in as admin to access the dashboard.', 'error')
         return redirect(url_for('adminlogin'))
-
-
-@app.route('/order_history')
-def order_history():
-    if session.get('user_id'):
-        cursor = mydb.cursor(dictionary=True)
-        user_id = session['user_id']
-        cursor.execute('SELECT * FROM orders WHERE customer_id = %s', (user_id,))
-        orders = cursor.fetchall()
-        return render_template('order_history.html', orders=orders)
-    else:
-        flash('Please log in to view your order history.', 'error')
-        return redirect(url_for('login'))
 
 
 @app.route('/delete_order/<int:order_id>', methods=['GET', 'POST'])
@@ -549,64 +544,80 @@ def delete_order(order_id):
     flash('Order deleted successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
-
-@app.route('/admin/order_status/<int:order_id>', methods=['POST'])
-def order_status(order_id):
+@app.route('/admin/update_status/<int:order_id>', methods=['POST'])
+def update_status(order_id):
     if session.get('admin_id'):
-        new_status = request.form['status']
+        new_status = request.form['status']  # Get the new status from the form
         cursor = mydb.cursor()
-        cursor.execute('UPDATE orders SET status = %s WHERE id = %s', (new_status, order_id))
+        cursor.execute('UPDATE orders SET order_status = %s WHERE id = %s', (new_status, order_id))
         mydb.commit()
         flash(f'Order status updated to {new_status}.', 'success')
-        return redirect(url_for('view_orders'))
+        return redirect(url_for('orders'))  # Redirect back to the orders page
     else:
         flash('Please log in as admin to update order status.', 'error')
         return redirect(url_for('adminlogin'))
 
-
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    if session.get('user_id'):
-        if request.method == 'POST':
+    if session.get('user_id'):  # Check if the user is logged in
+        user_id = session['user_id']
+
+        if request.method == 'POST':  # Handle profile updates
             name = request.form['name']
             email = request.form['email']
             password = request.form['password']
-            
+            gender = request.form['gender']
+            dob = request.form['dob']
+
             cursor = mydb.cursor()
-            cursor.execute('UPDATE user SET name = %s, email = %s, password = %s WHERE id = %s',
-                           (name, email, password, session['user_id']))
+            cursor.execute('UPDATE user SET name = %s, email = %s, password = %s, gender = %s, dob = %s WHERE id = %s',
+                           (name, email, password, gender, dob, user_id))
             mydb.commit()
             flash('Profile updated successfully!', 'success')
-            
+
+        # Fetch user details
         cursor = mydb.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM user WHERE id = %s', (session['user_id'],))
+        cursor.execute('SELECT * FROM user WHERE id = %s', (user_id,))
         user = cursor.fetchone()
-        return render_template('profile.html', user=user)
+
+        # Fetch user orders with dish details
+        cursor.execute('''
+            SELECT orders.id, orders.order_date, orders.total_price, adddish.name AS dish_name 
+            FROM orders 
+            INNER JOIN adddish ON orders.dish_id = adddish.id
+            WHERE orders.customer_id = %s
+            ''', (session['user_id'],))
+        orders = cursor.fetchall()
+
+
+        return render_template('profile.html', user=user, orders=orders)
+
     else:
         flash('Please log in to access your profile.', 'error')
         return redirect(url_for('login'))
 
 
-@app.route('/dish_review/<int:dish_id>', methods=['GET', 'POST'])
-def dish_review(dish_id):
-    if session.get('user_id'):
-        if request.method == 'POST':
-            rating = int(request.form['rating'])
-            review = request.form['review']
-            cursor = mydb.cursor()
-            cursor.execute('INSERT INTO reviews (user_id, dish_id, rating, review) VALUES (%s, %s, %s, %s)',
-                           (session['user_id'], dish_id, rating, review))
-            mydb.commit()
-            flash('Review added successfully!', 'success')
-            return redirect(url_for('view_dish', dish_id=dish_id))
+@app.route('/feedback_form', methods=['GET', 'POST'])
+def feedback_form():
+    if request.method == 'POST':
+        customer_name = request.form['customer_name']
+        email = request.form['email']
+        comment = request.form['comment']
 
-        cursor = mydb.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM adddish WHERE id = %s', (dish_id,))
-        dish = cursor.fetchone()
-        return render_template('dish_review.html', dish=dish)
-    else:
-        flash('Please log in to leave a review.', 'error')
-        return redirect(url_for('login'))
+        try:
+            # Insert feedback into the database
+            cursor = mydb.cursor()
+            query = "INSERT INTO feedback (customer_name, email, comment) VALUES (%s, %s, %s)"
+            cursor.execute(query, (customer_name, email, comment))
+            mydb.commit()
+            cursor.close()
+
+            flash('Thank you for your feedback!', 'success')
+            return redirect(url_for('base'))  # Redirect to homepage
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
+
+    return render_template('feedback_form.html')
 
 
 if __name__ == '__main__':

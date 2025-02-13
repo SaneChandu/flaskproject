@@ -1,9 +1,13 @@
 /* General Reset */
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f8f8f8;
-    color: #333;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   }
   
   /* Container */

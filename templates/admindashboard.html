@@ -123,6 +123,22 @@ a.logout-btn:hover {
     background-color: darkred;
 }
 
+button.update-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: var(--main);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    border: none; /* Removes default button border */
+    cursor: pointer; /* Adds pointer cursor */
+}
+
+button.update-btn:hover {
+    background-color: #ff7f32;
+}
+
 
     </style>
 </head>
@@ -154,9 +170,19 @@ a.logout-btn:hover {
                         <td>{{ order['order_status'] }}</td>
                         <td>{{ order['order_date'] }}</td>
                         <td>
-                            <a href="{{ url_for('order_status', order_id=order['id']) }}">Update Status</a> |
+                            <!-- Form to Update Order Status -->
+                            <form action="{{ url_for('update_status', order_id=order['id']) }}" method="POST" style="display: inline;">
+                                <select name="status">
+                                    <option value="Pending" {% if order['order_status'] == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Completed" {% if order['order_status'] == 'Completed' %}selected{% endif %}>Completed</option>
+                                    <option value="Cancelled" {% if order['order_status'] == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                </select>
+                                <button type="submit" class="update-btn">Update</button>
+                            </form>
+                            <!-- Link to Delete Order -->
                             <a href="{{ url_for('delete_order', order_id=order['id']) }}">Delete</a>
                         </td>
+                        
                     </tr>
                 {% endfor %}
             </tbody>

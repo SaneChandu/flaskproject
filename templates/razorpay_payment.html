@@ -3,78 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment</title>
+    <title>Complete Your Payment</title>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        #rzp-button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #rzp-button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
-        #status-message {
-            color: red;
-            display: none;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #rzp-button { background-color: #007bff; color: white; padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
     <h1>Complete Your Payment</h1>
     <p>Total Price: ₹{{ total_price }}</p>
     <p>Address: {{ address }}</p>
+    <p>Payment Method: {{ payment_method }}</p>
     <button id="rzp-button">Pay Now</button>
-    <p id="status-message">Processing Payment...</p>
 
     <script>
         const options = {
             key: "rzp_test_p1Y8tik4gQ37wZ",  // Replace with your Razorpay key
-            amount: "{{ razorpay_order['amount'] }}",  // Amount in paise, passed dynamically from the backend
+            amount: "{{ razorpay_order['amount'] }}",  // Amount in paise
             currency: "INR",
             name: "Annie's Kitchen",
             description: "Order Payment",
             order_id: "{{ razorpay_order['id'] }}",  // Razorpay order ID
             handler: function (response) {
-                console.log("Payment Response:", response);
-                document.getElementById('status-message').style.display = 'block';
-                document.getElementById('rzp-button').disabled = true;
-
                 fetch('/payment-success', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(response)
+                    body: JSON.stringify({
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_signature: response.razorpay_signature
+                    })
                 })
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Payment Success Response:", data);
                     if (data.status === "success") {
-                        window.location.href = data.redirect_url;
+                        window.location.href = data.redirect_url;  // Redirect to orders page
                     } else {
-                        alert(data.message || 'Payment verification failed.');
-                        document.getElementById('status-message').style.display = 'none';
-                        document.getElementById('rzp-button').disabled = false;
+                        alert(data.message);
                     }
                 })
                 .catch(error => {
-                    console.error("Payment Verification Error:", error);
                     alert('Payment verification failed. Please try again.');
-                    document.getElementById('status-message').style.display = 'none';
-                    document.getElementById('rzp-button').disabled = false;
                 });
             },
             theme: { color: "#007bff" }
         };
+
         const rzp = new Razorpay(options);
         document.getElementById('rzp-button').onclick = () => rzp.open();
     </script>
